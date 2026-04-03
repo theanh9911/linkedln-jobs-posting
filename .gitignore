@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+
+# GCP Private Keys (IMPORTANT)
+gcp_keys/
+*.json
+
+# Pipeline Logs
+*.log
+
+# Data (Ignored processed data for repo size)
+data/processed/
+
+# dbt (Data Build Tool)
+job-market-pipeline/dbt/target/
+job-market-pipeline/dbt/dbt_packages/
+job-market-pipeline/dbt/logs/
+job-market-pipeline/dbt/dbt_project.yml # (Maybe leave this, but gitignore dbt_modules)
+
+# Data files (Processed or Raw)
+job-market-pipeline/data/*.csv
+job-market-pipeline/data/*.parquet
+job-market-pipeline/data/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

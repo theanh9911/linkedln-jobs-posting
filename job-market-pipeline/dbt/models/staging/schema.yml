@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_job_postings
+    description: "Bảng tin tuyển dụng đã được làm sạch và chuẩn hóa kiểu dữ liệu."
+    columns:
+      - name: job_id
+        description: "Khóa chính duy nhất của tin tuyển dụng"
+        tests:
+          - unique
+          - not_null
+      - name: company_id
+        description: "Mã định danh công ty"
+        tests:
+          - not_null
+
+  - name: stg_companies
+    description: "Thông tin cơ bản về các công ty đăng tuyển."
+    columns:
+      - name: company_id
+        description: "Mã định danh duy nhất của công ty"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_industries
+    description: "Danh mục tên các ngành nghề."
+    columns:
+      - name: industry_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_skills
+    description: "Danh mục tên các kỹ năng."
+    columns:
+      - name: skill_abr
+        tests:
+          - unique
+          - not_null

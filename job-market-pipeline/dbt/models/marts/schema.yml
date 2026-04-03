@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: fct_job_postings
+    description: "Bảng dữ liệu tin tuyển dụng trung tâm. Chế độ Incremental, Partition theo ngày đăng."
+    columns:
+      - name: job_id
+        tests:
+          - unique
+          - not_null
+      - name: company_id
+        description: "Khóa ngoại nối sang dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      - name: work_type
+        tests:
+          - accepted_values:
+              values: ['Contract', 'Full-time', 'Part-time', 'Volunteer', 'Other', 'Internship']
+              quote: true
+
+  - name: dim_companies
+    description: "Bảng danh mục công ty tích hợp quy mô nhân sự và ngành nghề tinh lọc."
+    columns:
+      - name: company_id
+        tests:
+          - unique
+          - not_null

@@ -1,0 +1,12 @@
+job_market_bq:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: marts
+      threads: 4
+      keyfile: "D:/H/Projects/linkedln-job-posting/gcp_keys/application_default_credentials.json"
+      location: US # Thay đổi nếu dataset ở region khác (e.g. asia-southeast1)
+      priority: interactive

@@ -1,73 +1,56 @@
-# Job Market Analytics Pipeline 🚀
+# 💼 LinkedIn Job Market Analytics Pipeline
 
-Dự án này xây dựng một hệ thống phân tích thị trường việc làm từ bộ dữ liệu LinkedIn (124K+ tin tuyển dụng), sử dụng Python để ETL, BigQuery làm kho dữ liệu (Data Warehouse) và dbt để biến đổi dữ liệu.
+[![GCP](https://img.shields.io/badge/GCP-BigQuery-green.svg)](#)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](#)
+[![dbt](https://img.shields.io/badge/dbt-v1.6+-orange.svg)](#)
 
-## 🛠 Kiến Trúc Hệ Thống
-1. **Extract**: Python (Pandas) đọc CSV -> Parquet (Parquet nhanh hơn CSV 10-20 lần khi truy vấn).
-2. **Load**: Đẩy Parquet lên GCS -> BigQuery (Bảng `raw`).
-3. **Transform**: dbt biến đổi dữ liệu sang bảng Star Schema (Bảng `marts`).
-4. **Dashboard**: Looker Studio kết nối BigQuery để trực quan hóa.
-
-## 📂 Cấu Trúc Thư Mục
-```
-job-market-pipeline/
-├── scripts/
-│   ├── extract.py    # CSV -> Parquet & Làm sạch sơ bộ
-│   └── load.py       # GCS -> BigQuery (Partitioned)
-├── dbt/              # Thư mục chứa dbt models
-│   ├── models/
-│   │   ├── staging/  # Làm sạch, chuẩn hóa dữ liệu
-│   │   └── marts/    # Bảng Fact & Dim cho Dashboard
-│   ├── dbt_project.yml
-│   └── profiles.yml
-├── requirements.txt
-└── .env              # File cấu hình biến môi trường
-```
-
-## 🚀 Hướng Dẫn Cài Đặt (Setup)
-
-### Bước 1: Chuẩn bị môi trường
-1. Cài đặt các thư viện cần thiết bằng `uv`:
-   ```bash
-   uv pip install -r requirements.txt
-   ```
-2. Cập nhật thông tin trong file `.env`:
-   - `GCP_PROJECT_ID`: ID dự án của bạn trên GCP.
-   - `GCS_BUCKET_NAME`: Tên bucket bạn đã tạo trên GCS.
-
-### Bước 2: Chạy Pipeline ETL (Ngày 1)
-1. **Trích xuất và làm sạch dữ liệu**: Chuyển đổi CSV sang Parquet (giảm dung lượng đáng kể).
-   ```bash
-   python scripts/extract.py
-   ```
-2. **Tải dữ liệu lên GCP**: Đẩy file lên Storage và nạp vào BigQuery.
-   ```bash
-   python scripts/load.py
-   ```
-
-### Bước 3: Biến đổi dữ liệu với dbt (Ngày 1 & 2)
-1. Di chuyển vào thư mục dbt:
-   ```bash
-   cd dbt
-   ```
-2. Kiểm tra kết nối:
-   ```bash
-   dbt debug
-   ```
-3. Chạy các model transformation:
-   ```bash
-   dbt run
-   ```
-4. Kiểm tra chất lượng dữ liệu:
-   ```bash
-   dbt test
-   ```
-
-## 📊 Dashboard (Looker Studio)
-Kết nối Looker Studio với dataset `marts` trong BigQuery. Các chỉ số quan trọng:
-- **Job Volume Trend**: Biểu thị nhu cầu thị trường theo thời gian.
-- **Top Industries**: Các ngành nghề đang tuyển dụng mạnh nhất.
-- **Apply Rate vs. Experience**: Phân biệt hiệu quả ứng tuyển giữa người mới (entry) và cấp cao (senior).
+Một hệ thống Data Pipeline hiện đại (Modern Data Stack) để thu thập, xử lý và phân tích hơn **120,000+** tin tuyển dụng từ LinkedIn (2023-2024).
 
 ---
-*Dự án được xây dựng dựa trên tập dữ liệu LinkedIn Job Postings 2023-2024.*
+
+## 📖 Thư Viện Tài Liệu (Project Wiki)
+
+Hệ thống tài liệu được chuẩn hóa để cả **Người dùng** và **AI** đều có thể vận hành và phát triển dự án một cách nhanh nhất.
+
+| Tài liệu | Nội dung chính | Trạng thái |
+| :--- | :--- | :--- |
+| **[🏛️ ARCHITECTURE.md](job-market-pipeline/docs/ARCHITECTURE.md)** | Luồng Cloud (ELT), Sơ đồ ERD, Các lớp Dữ liệu (Raw/Staging/Marts) | ✅ Đã hoàn thiện |
+| **[🛠️ OPERATIONS.md](job-market-pipeline/docs/OPERATIONS.md)** | Cẩm nang lệnh `extract`, `load`, `bq`, `dbt` (Copy-Paste là chạy) | ✅ Đã hoàn thiện |
+| **[📖 DATA_DICTIONARY.md](job-market-pipeline/docs/DATA_DICTIONARY.md)** | Danh sách 11 bảng, Khóa chính (PK), Khóa ngoại (FK) và Metrics | ✅ Đã hoàn thiện |
+
+---
+
+## 🚀 Bắt đầu nhanh (Quickstart)
+
+Để vận hành dự án ngay lập tức, hãy đảm bảo bạn đã cấu hình file `.env` và file JSON Key trong thư mục `gcp_keys/`.
+
+```bash
+# 1. Trích xuất dữ liệu (CSV -> Parquet)
+python job-market-pipeline/scripts/extract.py
+
+# 2. Nạp dữ liệu lên Google Cloud (Bucket & BigQuery Raw)
+python job-market-pipeline/scripts/load.py
+
+# 3. Biến đổi dữ liệu bằng dbt (Staging & Marts)
+cd job-market-pipeline/dbt && dbt run
+```
+
+---
+
+## 📂 Cấu Trúc Thư Mục (Folder Structure)
+
+```text
+📁 linkedln-job-posting
+├── 📁 data (Dữ liệu CSV gốc)
+├── 📁 gcp_keys (Chứa file JSON xác thực)
+└── 📁 job-market-pipeline
+    ├── 📁 docs (Hệ thống tài liệu tri thức)
+    ├── 📁 scripts (Mã nguồn Extract & Load)
+    ├── 📁 dbt (Dự án biến đổi SQL)
+    ├── .env (Cấu hình Project ID & Bucket Name)
+    └── requirements.txt (Thư viện cần thiết)
+```
+
+---
+> [!TIP]
+> Nếu bạn muốn thêm bảng mới, chỉ cần copy file CSV vào thư mục `data/` và chạy lại các script trên. Hệ thống sẽ tự động quét và nạp bảng mới vào BigQuery!

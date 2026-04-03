@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID', 'project-6fe3973c-4db8-4b72-83b') }}"
+    schema: "{{ env_var('BQ_RAW_DATASET', 'raw') }}"
+    tables:
+      # Bảng sự kiện chính
+      - name: postings
+      
+      # Nhóm Công ty (Companies)
+      - name: companies_companies
+      - name: companies_company_industries
+      - name: companies_company_specialities
+      - name: companies_employee_counts
+      
+      # Nhóm Chi tiết Công việc (Jobs)
+      - name: jobs_benefits
+      - name: jobs_job_industries
+      - name: jobs_job_skills
+      - name: jobs_salaries
+      
+      # Nhóm Danh mục (Mappings)
+      - name: mappings_industries
+      - name: mappings_skills
