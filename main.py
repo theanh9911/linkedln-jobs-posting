@@ -20,11 +20,16 @@ logger = logging.getLogger(__name__)
 
 def run_command(command, cwd=None):
     """Thực thi một câu lệnh hệ thống và kiểm tra lỗi."""
+    # Tạo bản sao môi trường và thêm UTF-8 enforcement
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    
     logger.info(f"Executing: {' '.join(command) if isinstance(command, list) else command}")
     try:
         result = subprocess.run(
             command,
             cwd=cwd,
+            env=env,
             check=True,
             capture_output=True,
             text=True,
@@ -40,6 +45,12 @@ def run_command(command, cwd=None):
 
 def main():
     start_time = datetime.now()
+    
+    # Tính toán đường dẫn tương đối cho GCP Keyfile để không bị hardcode ổ đĩa
+    project_root = os.getcwd()
+    keyfile_path = os.path.join(project_root, "gcp_keys", "application_default_credentials.json")
+    os.environ["GCP_KEYFILE_PATH"] = keyfile_path
+    
     logger.info("=== BẮT ĐẦU TOÀN BỘ PIPELINE PHÂN TÍCH LINKEDIN ===")
 
     # 1. Pipeline Extract (Python)
@@ -56,15 +67,15 @@ def main():
 
     # 3. Pipeline dbt (SQL Transformation)
     logger.info(">>> Bước 3: Biến đổi dữ liệu & Kiểm soát chất lượng (dbt)")
-    dbt_dir = os.path.join(os.getcwd(), "job-market-pipeline", "dbt")
+    dbt_proj_dir = "job-market-pipeline/dbt"
     
-    # Chạy dbt run
-    if not run_command("uv run dbt run", cwd=dbt_dir):
+    # Chạy dbt run từ Root với flags
+    if not run_command(f"uv run dbt run --project-dir {dbt_proj_dir} --profiles-dir {dbt_proj_dir}"):
         logger.error("Dừng pipeline do lỗi tại bước dbt run.")
         return
 
-    # Chạy dbt test
-    if not run_command("uv run dbt test", cwd=dbt_dir):
+    # Chạy dbt test từ Root với flags
+    if not run_command(f"uv run dbt test --project-dir {dbt_proj_dir} --profiles-dir {dbt_proj_dir}"):
         logger.warning("Pipeline hoàn thành nhưng có lỗi trong dbt test. Hãy kiểm tra Data Quality.")
     else:
         logger.info("Toàn bộ Data Quality Tests đã PASS!")

@@ -13,20 +13,13 @@ gcp_keys/
 
 # Pipeline Logs
 *.log
+master_pipeline.log
+pipeline_extract.log
+pipeline_load.log
 
-# Data (Ignored processed data for repo size)
-data/processed/
-
-# dbt (Data Build Tool)
-job-market-pipeline/dbt/target/
-job-market-pipeline/dbt/dbt_packages/
-job-market-pipeline/dbt/logs/
-job-market-pipeline/dbt/dbt_project.yml # (Maybe leave this, but gitignore dbt_modules)
-
-# Data files (Processed or Raw)
-job-market-pipeline/data/*.csv
-job-market-pipeline/data/*.parquet
-job-market-pipeline/data/*.json
+# Raw and Processed Data (All heavy files)
+data/
+job-market-pipeline/data/ # Backup ignore
 
 # IDE
 .vscode/

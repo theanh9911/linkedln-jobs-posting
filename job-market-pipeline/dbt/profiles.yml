@@ -4,9 +4,9 @@ job_market_bq:
     dev:
       type: bigquery
       method: service-account
+      dataset: "{{ env_var('BQ_MARTS_DATASET') }}"
       project: "{{ env_var('GCP_PROJECT_ID') }}"
-      dataset: marts
       threads: 4
-      keyfile: "D:/H/Projects/linkedln-job-posting/gcp_keys/application_default_credentials.json"
-      location: US # Thay đổi nếu dataset ở region khác (e.g. asia-southeast1)
+      keyfile: "{{ env_var('GCP_KEYFILE_PATH') }}"
+      location: "{{ env_var('GCP_REGION') }}"
       priority: interactive

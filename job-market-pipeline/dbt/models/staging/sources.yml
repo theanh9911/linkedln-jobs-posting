@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    database: "{{ env_var('GCP_PROJECT_ID', 'project-6fe3973c-4db8-4b72-83b') }}"
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
     schema: "{{ env_var('BQ_RAW_DATASET', 'raw') }}"
     tables:
       # Bảng sự kiện chính
