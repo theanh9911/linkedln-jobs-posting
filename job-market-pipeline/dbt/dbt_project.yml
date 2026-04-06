@@ -22,4 +22,3 @@ models:
       +materialized: view
     marts:
       +materialized: table
-      +schema: "{{ env_var('BQ_MARTS_DATASET', 'job_market_marts') }}"

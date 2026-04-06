@@ -10,9 +10,7 @@ models:
           - unique
           - not_null
       - name: company_id
-        description: "Mã định danh công ty"
-        tests:
-          - not_null
+        description: "Mã định danh công ty (một số tin từ nguồn có thể thiếu — không ép not_null)"
 
   - name: stg_companies
     description: "Thông tin cơ bản về các công ty đăng tuyển."

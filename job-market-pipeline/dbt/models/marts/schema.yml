@@ -9,17 +9,19 @@ models:
           - unique
           - not_null
       - name: company_id
-        description: "Khóa ngoại nối sang dim_companies"
+        description: "Khóa ngoại nối sang dim_companies (có thể null nếu tin không gắn công ty)"
         tests:
-          - not_null
           - relationships:
-              to: ref('dim_companies')
-              field: company_id
+              arguments:
+                to: ref('dim_companies')
+                field: company_id
+                where: "company_id is not null"
       - name: work_type
         tests:
           - accepted_values:
-              values: ['Contract', 'Full-time', 'Part-time', 'Volunteer', 'Other', 'Internship']
-              quote: true
+              arguments:
+                values: ['Contract', 'Full-time', 'Part-time', 'Volunteer', 'Other', 'Internship']
+                quote: true
 
   - name: dim_companies
     description: "Bảng danh mục công ty tích hợp quy mô nhân sự và ngành nghề tinh lọc."

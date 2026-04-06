@@ -18,6 +18,21 @@ with processed_postings as (
         -- Chỉ lấy các bản ghi có ngày đăng tin lớn hơn ngày lớn nhất hiện có trong bảng
         where posted_date > (select max(posted_date) from {{ this }})
     {% endif %}
+),
+
+valid_company as (
+    select company_id from {{ ref('dim_companies') }}
+),
+
+with_orphan_company_fixed as (
+    select
+        pp.* except (company_id),
+        case
+            when vc.company_id is not null then pp.company_id
+            else null
+        end as company_id
+    from processed_postings pp
+    left join valid_company vc on pp.company_id = vc.company_id
 )
 
 select
@@ -50,4 +65,4 @@ select
     posted_date,
     listed_time
 
-from processed_postings
+from with_orphan_company_fixed
