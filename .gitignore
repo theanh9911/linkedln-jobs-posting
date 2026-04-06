@@ -11,22 +11,26 @@ env/
 gcp_keys/
 *.json
 
-# Pipeline Logs
+# === DATA & HEAVY FILES ===
+# Ignore the entire data directory at root
+data/
+# Ignore any specific data folders in subdirectories
+**/data/
+# General data file extensions anywhere
+*.csv
+*.parquet
+*.json
+*.sql.gz
+*.zip
+
+# === PIPELINE LOGS ===
 *.log
 master_pipeline.log
 pipeline_extract.log
 pipeline_load.log
 
-# Raw and Processed Data (All heavy files)
-data/
-job-market-pipeline/data/ # Backup ignore
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
+# === dbt ARTIFACTS ===
+target/
+dbt_packages/
+dbt_modules/
+logs/

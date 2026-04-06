@@ -3,10 +3,11 @@ job_market_bq:
   outputs:
     dev:
       type: bigquery
-      method: service-account
+      method: oauth
+      project: "{{ env_var('GOOGLE_CLOUD_PROJECT') }}"
       dataset: "{{ env_var('BQ_MARTS_DATASET') }}"
-      project: "{{ env_var('GCP_PROJECT_ID') }}"
-      threads: 4
-      keyfile: "{{ env_var('GCP_KEYFILE_PATH') }}"
+      threads: 8
       location: "{{ env_var('GCP_REGION') }}"
       priority: interactive
+
+

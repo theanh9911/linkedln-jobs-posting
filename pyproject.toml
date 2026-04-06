@@ -1,0 +1,21 @@
+[project]
+name = "job-market-pipeline"
+version = "0.1.0"
+description = "LinkedIn Job Market Analytics Pipeline - Production Ready"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2.0",
+    "pyarrow>=15.0.0",
+    "google-cloud-storage>=2.14.0",
+    "google-cloud-bigquery>=3.17.0",
+    "dbt-bigquery>=1.7.0",
+    "python-dotenv>=1.0.0",
+]
+
+
+[tool.uv]
+managed = true
+
+[tool.dbt]
+project-dir = "job-market-pipeline/dbt"
+profiles-dir = "job-market-pipeline/dbt"

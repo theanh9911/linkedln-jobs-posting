@@ -1,6 +1,0 @@
-pandas
-pyarrow
-google-cloud-storage
-google-cloud-bigquery
-dbt-bigquery
-python-dotenv

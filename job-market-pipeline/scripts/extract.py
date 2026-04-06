@@ -72,15 +72,15 @@ def extract_all(raw_dir, processed_dir):
             logger.error(f"Failed to process {filename}: {e}")
 
 if __name__ == "__main__":
-    # Base path is the project root (where .env is)
-    BASE_DIR = os.getcwd()
-    RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
-    PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
+    # Base path is the project root (Three levels up from job-market-pipeline/scripts/extract.py)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
-    start_time = datetime.now()
+    RAW_DIR = os.path.join(project_root, "data", "raw")
+    PROCESSED_DIR = os.path.join(project_root, "data", "processed")
+    
     logger.info("Starting Extract Pipeline...")
+    logger.info(f"Root: {project_root}")
     
     extract_all(RAW_DIR, PROCESSED_DIR)
-    
-    duration = datetime.now() - start_time
-    logger.info(f"Extract Pipeline Finished in {duration}.")
+
+

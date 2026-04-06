@@ -21,11 +21,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Cấu hình chứng chỉ (Sử dụng đường dẫn tuyệt đối ổn định)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "gcp_keys", "application_default_credentials.json"
-)
+# Cấu hình chứng chỉ (Sử dụng biến môi trường hoặc đường dẫn mặc định)
+keyfile_path = os.getenv("GCP_KEYFILE_PATH")
+# Lấy thư mục gốc của toàn bộ dự án (Lùi 3 cấp từ load.py: scripts -> job-market-pipeline -> ROOT)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+if keyfile_path:
+    # Nếu là đường dẫn tương đối, chuyển thành tuyệt đối dựa trên project root
+    if not os.path.isabs(keyfile_path):
+        keyfile_path = os.path.join(project_root, keyfile_path)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = keyfile_path
+else:
+    # Fallback mặc định
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
+        project_root, "gcp_keys", "application_default_credentials.json"
+    )
+
+
+def ensure_bucket_exists(client, bucket_name, location="asia-southeast1"):
+    """Kiểm tra và tạo GCS bucket nếu chưa tồn tại."""
+    try:
+        client.get_bucket(bucket_name)
+        logger.info(f"Bucket {bucket_name} already exists.")
+    except NotFound:
+        logger.info(f"Bucket {bucket_name} not found. Creating it in {location}...")
+        bucket = client.bucket(bucket_name)
+        bucket.storage_class = "STANDARD"
+        client.create_bucket(bucket, location=location)
+        logger.info(f"Created bucket {bucket_name} in {location}.")
+    except Exception as e:
+        logger.error(f"Error checking/creating bucket {bucket_name}: {e}")
 
 def ensure_dataset_exists(client, dataset_id, location="asia-southeast1"):
     """Kiểm tra và tạo dataset nếu chưa tồn tại."""
@@ -40,6 +65,7 @@ def ensure_dataset_exists(client, dataset_id, location="asia-southeast1"):
         logger.info(f"Created dataset {dataset_id} in {location}.")
     except Exception as e:
         logger.error(f"Error ensuring dataset {dataset_id}: {e}")
+
 
 def upload_to_gcs(local_file, bucket_name, gcs_blob_name, project_id):
     """Tải file lên Google Cloud Storage."""
@@ -83,51 +109,51 @@ def load_to_bigquery(gcs_uri, dataset_id, table_id, project_id, partition_field=
         logger.error(f"Failed to load {gcs_uri} into BigQuery: {e}")
 
 if __name__ == "__main__":
-    PROJECT_ID = os.getenv("GCP_PROJECT_ID")
+    PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
     BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
     RAW_DATASET_ID = os.getenv("BQ_RAW_DATASET", "raw")
     REGION = os.getenv("GCP_REGION", "asia-southeast1")
     
     if not PROJECT_ID or not BUCKET_NAME:
-        logger.error("Missing GCP_PROJECT_ID or GCS_BUCKET_NAME in .env file.")
+        logger.error("Missing GOOGLE_CLOUD_PROJECT or GCS_BUCKET_NAME in .env file.")
         exit(1)
 
-    BASE_DIR = os.getcwd()
-    PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
+    # Base path is the project root (Three levels up from job-market-pipeline/scripts/load.py)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    processed_data_dir = os.path.join(project_root, "data", "processed")
     
-    start_time = datetime.now()
-    logger.info("Starting Load Pipeline...")
+    logger.info(f"Starting Load Pipeline (Root: {project_root})...")
     
     try:
-        # 1. Đảm bảo kết nối BigQuery & Dataset tồn tại
+        # 1. Đảm bảo kết nối Cloud
         bq_client = bigquery.Client(project=PROJECT_ID)
-        ensure_dataset_exists(bq_client, DATASET_ID)
+        gcs_client = storage.Client(project=PROJECT_ID)
         
-        # 2. Tìm tất cả file Parquet đã xử lý
-        parquet_files = glob.glob(os.path.join(PROCESSED_DATA_DIR, "*.parquet"))
+        ensure_bucket_exists(gcs_client, BUCKET_NAME, location=REGION)
+        ensure_dataset_exists(bq_client, RAW_DATASET_ID, location=REGION)
+
+        
+        # 2. Tìm file Parquet
+        parquet_files = glob.glob(os.path.join(processed_data_dir, "*.parquet"))
         
         if not parquet_files:
-            logger.error("No Parquet files found. Please run extract.py first.")
+            logger.error(f"No Parquet files found in {processed_data_dir}.")
+
             exit(1)
             
         for local_path in parquet_files:
-            filename = os.path.basename(local_path)
-            # Tạo table_id từ filename (loại bỏ .parquet)
-            table_id = filename.replace(".parquet", "")
-            gcs_blob = f"raw/{filename}"
+            table_id = os.path.basename(local_path).replace(".parquet", "")
+            gcs_blob = f"raw/{os.path.basename(local_path)}"
             gcs_uri = f"gs://{BUCKET_NAME}/{gcs_blob}"
-            
-            # Chỉ định partition cho bảng tin tuyển dụng nếu có cột posted_date
             partition = "posted_date" if "postings" in table_id else None
             
-            # 3. Tải lên GCS
+            # 3. Upload & Load
             upload_to_gcs(local_path, BUCKET_NAME, gcs_blob, PROJECT_ID)
+            load_to_bigquery(gcs_uri, RAW_DATASET_ID, table_id, PROJECT_ID, partition)
             
-            # 4. Nạp vào BigQuery
-            load_to_bigquery(gcs_uri, DATASET_ID, table_id, PROJECT_ID, partition)
-            
-        duration = datetime.now() - start_time
-        logger.info(f"Load Pipeline Finished in {duration}.")
+        logger.info("Load Pipeline Finished.")
         
     except Exception as e:
-        logger.error(f"Critical error in Load Pipeline: {e}")
+        logger.error(f"Critical error: {e}")
+
+
